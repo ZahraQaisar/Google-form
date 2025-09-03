@@ -1,8 +1,8 @@
 import React from "react";
-import { FiDownload, FiShare2, FiEye, FiUpload } from "react-icons/fi";
+import { FiDownload, FiShare2, FiUpload } from "react-icons/fi";
 import { HiOutlineClock, HiOutlineRefresh } from "react-icons/hi";
 
-export default function Navbar({ currentView, setCurrentView }) {
+export default function Navbar({ currentView, setCurrentView, onPreviewClick }) {
   return (
     <div className="flex flex-wrap items-center justify-between p-4 bg-white shadow-md gap-4">
       {/* Logo + Title */}
@@ -24,6 +24,7 @@ export default function Navbar({ currentView, setCurrentView }) {
 
         {/* Theme toggle */}
         <label className="swap swap-rotate">
+          {/* hidden checkbox controls the state */}
           <input type="checkbox" className="theme-controller" value="sunset" />
 
           {/* sun icon */}
@@ -45,7 +46,7 @@ export default function Navbar({ currentView, setCurrentView }) {
           </svg>
         </label>
 
-        {/* Buttons */}
+        {/* File/Share buttons */}
         <button className="flex-1 w-full sm:w-auto flex items-center gap-1 px-3 py-1 border rounded hover:bg-gray-100">
           <FiDownload /> CSV
         </button>
@@ -65,6 +66,7 @@ export default function Navbar({ currentView, setCurrentView }) {
           Load link
         </button>
 
+        {/* View Switch */}
         <button
           onClick={() => setCurrentView("builder")}
           className={`flex-1 w-full sm:w-auto px-3 py-1 border rounded hover:bg-gray-100 ${
@@ -81,7 +83,12 @@ export default function Navbar({ currentView, setCurrentView }) {
         >
           Responses
         </button>
-        <button className="flex-1 w-full sm:w-auto px-3 py-1 text-white bg-blue-800 rounded hover:bg-blue-700">
+
+        {/* Preview Button */}
+        <button
+          onClick={onPreviewClick}
+          className="flex-1 w-full sm:w-auto px-3 py-1 text-white bg-blue-800 rounded hover:bg-blue-700"
+        >
           Preview
         </button>
       </div>
