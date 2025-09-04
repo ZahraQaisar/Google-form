@@ -12,7 +12,6 @@ export default function Form1({ onAddSectionFromSidebar }) {
   const [description, setDescription] = useState("");
   const [thankYouMessage, setThankYouMessage] = useState("Thanks for your response!");
 
-  // Dynamic sections
   const [sections, setSections] = useState([]);
 
   const handleAddSection = () => {
@@ -36,7 +35,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
   }, [onAddSectionFromSidebar, sections]);
 
   return (
-    <div className="max-w-4xl p-6 mt-10 ml-20 mr-auto bg-white shadow-md space-y-4 rounded-3xl">
+    <div className="max-w-4xl p-6 mt-10 ml-20 mr-auto bg-base-100 shadow-md space-y-4 rounded-3xl text-base-content border border-base-300">
       {/* Form Controls */}
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-1">
@@ -69,7 +68,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
             type="number"
             value={quota}
             onChange={(e) => setQuota(e.target.value)}
-            className="w-20 px-2 border rounded"
+            className="w-20 px-2 border rounded bg-base-100 text-base-content border-base-300"
           />
         </label>
       </div>
@@ -81,7 +80,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
             type="datetime-local"
             value={openAt}
             onChange={(e) => setOpenAt(e.target.value)}
-            className="w-full px-2 py-1 mt-1 border rounded"
+            className="w-full px-2 py-1 mt-1 border rounded bg-base-100 text-base-content border-base-300"
           />
         </label>
 
@@ -91,7 +90,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
             type="datetime-local"
             value={closeAt}
             onChange={(e) => setCloseAt(e.target.value)}
-            className="w-full px-2 py-1 mt-1 border rounded"
+            className="w-full px-2 py-1 mt-1 border rounded bg-base-100 text-base-content border-base-300"
           />
         </label>
 
@@ -101,7 +100,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
             type="color"
             value={accent}
             onChange={(e) => setAccent(e.target.value)}
-            className="w-10 h-8 p-0 border rounded"
+            className="w-10 h-8 p-0 border rounded border-base-300"
           />
         </label>
       </div>
@@ -112,7 +111,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe your form (optional)"
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded bg-base-100 text-base-content border-base-300"
         />
       </div>
 
@@ -122,7 +121,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
           type="text"
           value={thankYouMessage}
           onChange={(e) => setThankYouMessage(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded bg-base-100 text-base-content border-base-300"
         />
       </div>
 
@@ -130,19 +129,19 @@ export default function Form1({ onAddSectionFromSidebar }) {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => alert("Basics clicked")}
-          className="flex-1 px-4 py-2 border rounded hover:bg-gray-100"
+          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
         >
           Basics
         </button>
         <button
           onClick={() => alert("Details clicked")}
-          className="flex-1 px-4 py-2 border rounded hover:bg-gray-100"
+          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
         >
           Details
         </button>
         <button
           onClick={handleAddSection}
-          className="flex-1 px-4 py-2 border rounded hover:bg-gray-100"
+          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
         >
           Add section
         </button>
@@ -151,7 +150,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
       {/* Dynamic Sections */}
       <div className="mt-4 space-y-4">
         {sections.map((section) => (
-          <div key={section.id} className="relative p-4 border rounded bg-gray-50">
+          <div key={section.id} className="relative p-4 border rounded bg-base-200 border-base-300">
             <h3 className="font-semibold">{section.title}</h3>
             <textarea
               placeholder="Drag items here from the right to start building your form"
@@ -162,7 +161,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
                 );
                 setSections(updatedSections);
               }}
-              className="w-full p-2 mt-2 border rounded"
+              className="w-full p-2 mt-2 border rounded bg-base-100 text-base-content border-base-300"
             />
             <button
               onClick={() => handleRemoveSection(section.id)}
