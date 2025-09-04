@@ -1,7 +1,7 @@
 import React from "react";
 import { IoClose } from "react-icons/io5";
 
-const TemplateModal = ({ isOpen, onClose }) => {
+const TemplateModal = ({ isOpen, onClose, onSelectTemplate }) => {
     if (!isOpen) return null;
 
     const templates = [
@@ -35,8 +35,10 @@ const TemplateModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Templates list*/}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 overflow-y-auto"
-                    style={{ maxHeight: "calc(90vh - 64px)" }}>
+                <div
+                    className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 overflow-y-auto"
+                    style={{ maxHeight: "calc(90vh - 64px)" }}
+                >
                     {templates.map((t, index) => (
                         <div
                             key={index}
@@ -46,7 +48,12 @@ const TemplateModal = ({ isOpen, onClose }) => {
                                 <h3 className="font-medium text-gray-900">{t.title}</h3>
                                 <p className="text-sm text-gray-600 mt-1">{t.desc}</p>
                             </div>
-                            <button className="mt-4 bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-indigo-700">
+                            <button
+                                onClick={() => {
+                                    onSelectTemplate(t.title); // parent App.jsx ko bhejna
+                                }}
+                                className="mt-4 bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-indigo-700"
+                            >
                                 Use this
                             </button>
                         </div>
@@ -54,7 +61,6 @@ const TemplateModal = ({ isOpen, onClose }) => {
                 </div>
             </div>
         </div>
-
     );
 };
 

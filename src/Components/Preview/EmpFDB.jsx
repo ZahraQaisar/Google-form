@@ -15,23 +15,25 @@ const EmployeeFeedback = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-            <div className="bg-white w-[800px] max-h-[90vh] rounded-xl shadow-lg overflow-y-auto relative">
-                {/* Close button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                >
-                    <IoClose size={24} />
-                </button>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+      <div className="bg-white w-[800px] max-h-[90vh] rounded-xl shadow-lg relative flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-4 border-b">
+          <h2 className="text-xl font-bold text-gray-800">Form Preview</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <IoClose size={24} />
+          </button>
+        </div>
 
-
-                {/* Content */}
-                <div className="p-6">
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
                         Employee Feedback
                     </h2>
-                    <p className="text-sm text-gray-500 mb-6">
+                    <p className="text-base text-gray-500 mb-6">
                         Your responses are anonymous.
                     </p>
 
