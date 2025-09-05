@@ -35,7 +35,6 @@ export default function Form1({ onAddSectionFromSidebar }) {
   }, [onAddSectionFromSidebar, sections]);
 
   return (
-    <div className="max-w-4xl p-6 mt-10 ml-20 mr-auto bg-base-100 shadow-md space-y-4 rounded-3xl text-base-content border border-base-300">
       {/* Form Controls */}
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-1">

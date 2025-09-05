@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // yahan props destructure karo
-const Sidebar = ({ onBrowseTemplatesClick, onAddSection }) => {
+const Sidebar = ({ onBrowseTemplatesClick, onAddSection, onSelectQuestion }) => {
     const questionTypes = [
         { label: "Short answer", icon: Type },
         { label: "Paragraph", icon: FileText },
@@ -31,23 +31,25 @@ const Sidebar = ({ onBrowseTemplatesClick, onAddSection }) => {
     ];
 
     return (
-        <aside className="w-full lg:w-96 order-2 lg:order-none bg-gray-50 border border-gray-300 rounded-xl p-4 sm:p-5 shadow-sm mt-4 lg:mt-6 lg:ml-6 m-5">            
-        <div>
-            <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
-                Add a question
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-                {questionTypes.map(({ label, icon: Icon }, i) => (
-                    <button
-                        key={i}
-                        className="w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 text-xs font-medium text-gray-700 shadow-sm hover:border-purple-400 hover:text-purple-600 transition whitespace-nowrap"
-                    >
-                        <Icon className="w-5 h-5 text-purple-500" />
-                        <span className="truncate">{label}</span>
-                    </button>
-                ))}
+        <aside className="w-full max-w-md mx-auto order-2 lg:order-none bg-gray-50 border border-gray-300 rounded-xl p-4 sm:p-5 shadow-sm mt-4 lg:mt-6 lg:ml-6 h-auto self-start">
+            <div>
+                <h2 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">
+                    Add a question
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                    {questionTypes.map(({ label, icon: Icon }, i) => (
+                        <button
+                            key={i}
+                            onClick={() => onSelectQuestion(label)}
+                            className="w-full flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 text-xs font-medium text-gray-700 shadow-sm hover:border-purple-400 hover:text-purple-600 transition whitespace-nowrap"
+                        >
+                            <Icon className="w-5 h-5 text-purple-500" />
+                            <span className="truncate">{label}</span>
+                        </button>
+                    ))}
+
+                </div>
             </div>
-        </div>
 
             {/* AI assist */}
             <div className="mt-8">

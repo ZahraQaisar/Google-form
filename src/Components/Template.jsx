@@ -18,11 +18,11 @@ const TemplateModal = ({ isOpen, onClose, onSelectTemplate }) => {
     ];
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-            <div className="bg-white w-[800px] max-h-[90vh] rounded-xl shadow-lg flex flex-col">
-
-                {/* Header*/}
-                <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 px-4 sm:px-6">
+            <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-xl shadow-lg flex flex-col overflow-hidden">
+                
+                {/* Header */}
+                <div className="flex items-center justify-between border-b px-4 sm:px-6 py-4">
                     <h2 className="text-lg font-semibold text-gray-800">
                         Choose a template
                     </h2>
@@ -34,9 +34,9 @@ const TemplateModal = ({ isOpen, onClose, onSelectTemplate }) => {
                     </button>
                 </div>
 
-                {/* Templates list*/}
+                {/* Templates list */}
                 <div
-                    className="grid grid-cols-2 md:grid-cols-3 gap-4 p-6 overflow-y-auto"
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 sm:p-6 overflow-y-auto"
                     style={{ maxHeight: "calc(90vh - 64px)" }}
                 >
                     {templates.map((t, index) => (
@@ -49,9 +49,7 @@ const TemplateModal = ({ isOpen, onClose, onSelectTemplate }) => {
                                 <p className="text-sm text-gray-600 mt-1">{t.desc}</p>
                             </div>
                             <button
-                                onClick={() => {
-                                    onSelectTemplate(t.title); // parent App.jsx ko bhejna
-                                }}
+                                onClick={() => onSelectTemplate(t.title)}
                                 className="mt-4 bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-indigo-700"
                             >
                                 Use this

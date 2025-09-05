@@ -14,6 +14,7 @@ import EventRegister from './Components/Preview/EventReg';
 import LeadCapture from './Components/Preview/LeadCapture';
 import RSVP from './Components/Preview/RSVP';
 import BugReport from './Components/Preview/BugReport';
+import Forms from './Components/Forms';
 
 const App = () => {
   // Dono states rakhi hain
@@ -22,6 +23,8 @@ const App = () => {
   const [currentView, setCurrentView] = useState('builder'); // 'builder' or 'responses'
   const addSectionRef = useRef(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [forms, setForms] = useState([]);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
 
 
   return (
@@ -38,10 +41,22 @@ const App = () => {
         {/* main content */}
         <div className="flex-1 order-1 lg:order-none">
           {currentView === "builder" ? (
-            <Form1 onAddSectionFromSidebar={addSectionRef} />
+            <>
+              <Form1 onAddSectionFromSidebar={addSectionRef} />
+
+              {/*  Forms.jsx show only if question selected */}
+              {selectedQuestion && (
+                <Forms
+                  selectedQuestion={selectedQuestion}
+                  forms={forms}
+                  setForms={setForms}
+                />
+              )}
+            </>
           ) : (
             <Responses />
           )}
+
         </div>
 
         {/* sidebar */}
@@ -50,7 +65,9 @@ const App = () => {
           onAddSection={() =>
             addSectionRef.current && addSectionRef.current()
           }
+          onSelectQuestion={(type) => setSelectedQuestion(type)}   // ✅ new prop
         />
+
       </div>
 
 

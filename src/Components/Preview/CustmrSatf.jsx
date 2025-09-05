@@ -23,8 +23,8 @@ const CustomerSatisfaction = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white w-[800px] max-h-[90vh] rounded-xl shadow-lg relative flex flex-col">
+<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 px-4 sm:px-6">
+<div className="bg-white w-full max-w-3xl mx-auto max-h-[90vh] rounded-xl shadow-lg relative flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <h2 className="text-xl font-bold text-gray-800">Form Preview</h2>
@@ -37,7 +37,7 @@ const CustomerSatisfaction = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+<div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Customer Satisfaction Survey
           </h2>
@@ -133,7 +133,7 @@ const CustomerSatisfaction = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t px-6 py-4 rounded-b-xl bg-gray-50">
+<div className="flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl bg-gray-50">
           <span className="text-sm text-gray-500">Page 1 of 1</span>
           <button
             onClick={handleSubmit}
