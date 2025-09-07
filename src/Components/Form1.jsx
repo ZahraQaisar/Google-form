@@ -10,7 +10,9 @@ export default function Form1({ onAddSectionFromSidebar }) {
   const [closeAt, setCloseAt] = useState("");
   const [accent, setAccent] = useState("#4f46e5");
   const [description, setDescription] = useState("");
-  const [thankYouMessage, setThankYouMessage] = useState("Thanks for your response!");
+  const [thankYouMessage, setThankYouMessage] = useState(
+    "Thanks for your response!"
+  );
 
   const [sections, setSections] = useState([]);
 
@@ -18,7 +20,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
     const newSection = {
       id: Date.now(),
       title: `New Section`,
-      content: ""
+      content: "",
     };
     setSections([...sections, newSection]);
   };
@@ -35,20 +37,33 @@ export default function Form1({ onAddSectionFromSidebar }) {
   }, [onAddSectionFromSidebar, sections]);
 
   return (
+    <div className="max-w-6xl p-6 mx-auto rounded-xl shadow-lg bg-base-100 text-base-content">
       {/* Form Controls */}
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={quiz} onChange={() => setQuiz(!quiz)} />
+          <input
+            type="checkbox"
+            checked={quiz}
+            onChange={() => setQuiz(!quiz)}
+          />
           <span>Quiz</span>
         </label>
 
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={captcha} onChange={() => setCaptcha(!captcha)} />
+          <input
+            type="checkbox"
+            checked={captcha}
+            onChange={() => setCaptcha(!captcha)}
+          />
           <span>Captcha</span>
         </label>
 
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={shuffleQs} onChange={() => setShuffleQs(!shuffleQs)} />
+          <input
+            type="checkbox"
+            checked={shuffleQs}
+            onChange={() => setShuffleQs(!shuffleQs)}
+          />
           <span>Shuffle Qs</span>
         </label>
 
@@ -72,7 +87,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
         </label>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 mt-4">
         <label className="flex-1 min-w-[200px]">
           Open at
           <input
@@ -104,7 +119,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
         </label>
       </div>
 
-      <div>
+      <div className="mt-4">
         <label className="block mb-1">Form description</label>
         <textarea
           value={description}
@@ -114,7 +129,7 @@ export default function Form1({ onAddSectionFromSidebar }) {
         />
       </div>
 
-      <div>
+      <div className="mt-4">
         <label className="block mb-1">Thank-you message</label>
         <input
           type="text"
@@ -124,23 +139,23 @@ export default function Form1({ onAddSectionFromSidebar }) {
         />
       </div>
 
-       {/* Buttons */}
-      <div className="flex flex-wrap gap-2">
+      {/* Buttons */}
+      <div className="flex flex-wrap gap-2 mt-4">
         <button
           onClick={() => alert("Basics clicked")}
-          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
+          className="flex-1 px-4 py-2 border rounded border-base-300 hover:bg-base-200"
         >
           Basics
         </button>
         <button
           onClick={() => alert("Details clicked")}
-          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
+          className="flex-1 px-4 py-2 border rounded border-base-300 hover:bg-base-200"
         >
           Details
         </button>
         <button
           onClick={handleAddSection}
-          className="flex-1 px-4 py-2 border rounded hover:bg-base-200 border-base-300"
+          className="flex-1 px-4 py-2 border rounded border-base-300 hover:bg-base-200"
         >
           Add section
         </button>
@@ -149,7 +164,10 @@ export default function Form1({ onAddSectionFromSidebar }) {
       {/* Dynamic Sections */}
       <div className="mt-4 space-y-4">
         {sections.map((section) => (
-          <div key={section.id} className="relative p-4 border rounded bg-base-200 border-base-300">
+          <div
+            key={section.id}
+            className="relative p-4 border rounded bg-base-200 border-base-300"
+          >
             <h3 className="font-semibold">{section.title}</h3>
             <textarea
               placeholder="Drag items here from the right to start building your form"
