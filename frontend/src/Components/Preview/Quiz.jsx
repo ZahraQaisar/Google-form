@@ -6,6 +6,7 @@ const Quiz = ({ onClose }) => {
   const [capitalAnswer, setCapitalAnswer] = useState("");
   const [mathAnswer, setMathAnswer] = useState("");
   const [planetAnswer, setPlanetAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -19,16 +20,39 @@ const Quiz = ({ onClose }) => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const feedback = {
-      capitalAnswer,
-      mathAnswer,
-      planetAnswer,
+
+    const formData = {
+      formTitle: "General Knowledge Quiz",
+      username: localStorage.getItem("username") || "Guest",
+      answers: {
+        capitalAnswer,
+        mathAnswer,
+        planetAnswer,
+      },
     };
-    console.log("Submitted Answers:", feedback);
-    alert("Thanks for your response!");
-    onClose();
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch("http://localhost:5000/api/forms/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert("✅ Quiz submitted successfully!");
+        onClose();
+      } else {
+        alert("❌ Failed to submit quiz. Please try again.");
+      }
+    } catch (error) {
+      console.error("Submission Error:", error);
+      alert("⚠️ Error connecting to the server.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const questionStyle = theme === "dark"
@@ -42,10 +66,16 @@ const Quiz = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
-      <div className={`w-full max-w-3xl mx-auto max-h-[90vh] rounded-xl shadow-lg relative flex flex-col transition-colors duration-300
-                      ${theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"}`}>
+      <div
+        className={`w-full max-w-3xl mx-auto max-h-[90vh] rounded-xl shadow-lg relative flex flex-col transition-colors duration-300
+        ${theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"}`}
+      >
         {/* Header */}
-        <div className={`flex justify-between items-center px-4 sm:px-6 py-4 border-b ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}>
+        <div
+          className={`flex justify-between items-center px-4 sm:px-6 py-4 border-b ${
+            theme === "dark" ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
           <h2 className="text-xl font-bold">Form Preview</h2>
           <button onClick={onClose} className={closeBtnStyle}>
             <IoClose size={24} />
@@ -55,7 +85,9 @@ const Quiz = ({ onClose }) => {
         {/* Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           <h2 className="text-2xl font-bold mb-2">General Knowledge Quiz</h2>
-          <p className={theme === "dark" ? "text-gray-400 mb-6" : "text-gray-500 mb-6"}>Answer the questions below</p>
+          <p className={theme === "dark" ? "text-gray-400 mb-6" : "text-gray-500 mb-6"}>
+            Answer the questions below
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Q1: Capital of France */}
@@ -127,20 +159,22 @@ const Quiz = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className={`flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl ${footerStyle}`}>
+        <div
+          className={`flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl ${footerStyle}`}
+        >
           <span className={`text-sm ${pageTextStyle}`}>Page 1 of 1</span>
           <button
             onClick={handleSubmit}
-            disabled={!capitalAnswer || !mathAnswer || !planetAnswer}
+            disabled={!capitalAnswer || !mathAnswer || !planetAnswer || isSubmitting}
             className={`px-5 py-2 rounded-lg shadow ${
-              !capitalAnswer || !mathAnswer || !planetAnswer
+              !capitalAnswer || !mathAnswer || !planetAnswer || isSubmitting
                 ? "bg-gray-400 cursor-not-allowed"
                 : theme === "dark"
                 ? "bg-gray-800 text-gray-100 hover:bg-gray-700"
                 : "bg-blue-800 text-white hover:bg-blue-700"
             }`}
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>

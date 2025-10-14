@@ -19,12 +19,29 @@ const EmployeeFeedback = ({ onClose }) => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e) => {
+  // ✅ Updated handleSubmit to also send data to backend
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const feedback = { workLifeBalance, managerSupport, comments };
     console.log("Submitted Feedback:", feedback);
-    alert("Thanks for your response!");
-    onClose();
+
+    try {
+      const response = await fetch("http://localhost:5000/api/forms/employee-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(feedback),
+      });
+
+      if (response.ok) {
+        alert("Thanks for your response!");
+        onClose();
+      } else {
+        alert("Failed to submit feedback. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("An error occurred while submitting feedback.");
+    }
   };
 
   return (

@@ -99,12 +99,13 @@ const RSVP = ({ onClose }) => {
             {/* Meal preference */}
             <div className={`border rounded-lg p-4 ${sectionStyle}`}>
               <label className={`block font-medium mb-2 ${labelTextStyle}`}>
-                Meal Preference
+                Meal Preference <span className="text-red-500">*</span>
               </label>
               <select
                 value={mealPreference}
                 onChange={(e) => setMealPreference(e.target.value)}
                 className={`w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${inputStyle}`}
+                required
               >
                 {["Select..", "Veg", "Non Veg", "Vegan", "Halal", "Kosher"].map(
                   (option) => (

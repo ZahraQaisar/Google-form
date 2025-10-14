@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
 import userRoutes from "./routes/userRoutes.js";
+import formRoutes from "./routes/formRoutes.js"; 
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ connectDB();
 
 // Routes
 app.use("/api/user", userRoutes);
+app.use("/api/forms", formRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

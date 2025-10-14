@@ -3,10 +3,11 @@ import { IoClose } from "react-icons/io5";
 
 const BugReport = ({ onClose }) => {
   const [theme, setTheme] = useState("light");
-  const [summary, setSummary] = useState(""); 
-  const [steps, setSteps] = useState(""); 
-  const [severity, setSeverity] = useState(""); 
-  const [screenshot, setScreenshot] = useState(null); 
+  const [summary, setSummary] = useState("");
+  const [steps, setSteps] = useState("");
+  const [severity, setSeverity] = useState("");
+  const [screenshot, setScreenshot] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Track theme changes
   useEffect(() => {
@@ -15,33 +16,91 @@ const BugReport = ({ onClose }) => {
     };
     updateTheme();
     const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const bugReport = { summary, steps, severity, screenshot };
-    console.log("Submitted Bug Report:", bugReport);
-    alert("Thanks for submitting the bug report!");
-    onClose();
-  };
-
   const handleFileChange = (e) => setScreenshot(e.target.files[0]);
+
+  // ✅ Submit form to backend
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!summary || !steps || !severity) {
+      alert("Please fill all required fields.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Get logged-in user (if any)
+      const token = localStorage.getItem("token");
+
+      // Prepare form data
+      const formData = {
+        formType: "Bug Report",
+        responses: {
+          summary,
+          steps,
+          severity,
+          screenshot: screenshot ? screenshot.name : "No file uploaded",
+        },
+      };
+
+      // Send data to backend
+      const response = await fetch("http://localhost:5000/api/forms/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Bug report submitted successfully!");
+        onClose();
+      } else {
+        alert(data.message || "Failed to submit bug report.");
+      }
+    } catch (error) {
+      console.error("Error submitting bug report:", error);
+      alert("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const isDark = theme === "dark";
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
       <div
-        className={`w-full max-w-3xl mx-auto max-h-[90vh] rounded-xl shadow-lg relative flex flex-col transition-colors duration-300
-                    ${isDark ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"}`}
+        className={`w-full max-w-3xl mx-auto max-h-[90vh] rounded-xl shadow-lg relative flex flex-col transition-colors duration-300 ${
+          isDark ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"
+        }`}
       >
         {/* Header */}
-        <div className={`flex justify-between items-center px-6 py-4 border-b
-                        ${isDark ? "border-gray-700" : "border-gray-200"}`}>
-          <h2 className="text-xl font-bold">{`Form Preview`}</h2>
-          <button className={`${isDark ? "text-gray-300 hover:text-white" : "text-gray-500 hover:text-gray-700"}`} onClick={onClose}>
+        <div
+          className={`flex justify-between items-center px-6 py-4 border-b ${
+            isDark ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
+          <h2 className="text-xl font-bold">Form Preview</h2>
+          <button
+            className={`${
+              isDark
+                ? "text-gray-300 hover:text-white"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={onClose}
+          >
             <IoClose size={24} />
           </button>
         </div>
@@ -49,12 +108,28 @@ const BugReport = ({ onClose }) => {
         {/* Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           <h2 className="text-2xl font-bold mb-2">Bug Report</h2>
-          <p className={`${isDark ? "text-gray-400" : "text-gray-500"} mb-6`}>Help us squash bugs.</p>
+          <p
+            className={`${
+              isDark ? "text-gray-400" : "text-gray-500"
+            } mb-6`}
+          >
+            Help us squash bugs.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Summary */}
-            <div className={`border rounded-lg p-4 ${isDark ? "border-gray-700 bg-gray-800" : "border-gray-300 bg-white"}`}>
-              <label className={`block font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-white"
+              }`}
+            >
+              <label
+                className={`block font-medium mb-2 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 Summary <span className="text-red-500">*</span>
               </label>
               <input
@@ -63,14 +138,27 @@ const BugReport = ({ onClose }) => {
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="Enter summary"
                 required
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary
-                            ${isDark ? "bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300"}`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                  isDark
+                    ? "bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300"
+                }`}
               />
             </div>
 
-            {/* Steps to reproduce */}
-            <div className={`border rounded-lg p-4 ${isDark ? "border-gray-700 bg-gray-800" : "border-gray-300 bg-white"}`}>
-              <label className={`block font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            {/* Steps */}
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-white"
+              }`}
+            >
+              <label
+                className={`block font-medium mb-2 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 Steps to reproduce <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -79,19 +167,37 @@ const BugReport = ({ onClose }) => {
                 onChange={(e) => setSteps(e.target.value)}
                 placeholder="Enter steps..."
                 required
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary
-                            ${isDark ? "bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300"}`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                  isDark
+                    ? "bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300"
+                }`}
               />
             </div>
 
             {/* Severity */}
-            <div className={`border rounded-lg p-4 ${isDark ? "border-gray-700 bg-gray-800" : "border-gray-300 bg-white"}`}>
-              <label className={`block font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-white"
+              }`}
+            >
+              <label
+                className={`block font-medium mb-2 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
                 Severity <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {["Blocker", "Critical", "Major", "Minor"].map((option) => (
-                  <label key={option} className={`flex items-center space-x-2 ${isDark ? "text-gray-100" : "text-gray-900"}`}>
+                  <label
+                    key={option}
+                    className={`flex items-center space-x-2 ${
+                      isDark ? "text-gray-100" : "text-gray-900"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="severity"
@@ -108,8 +214,20 @@ const BugReport = ({ onClose }) => {
             </div>
 
             {/* Screenshot */}
-            <div className={`border rounded-lg p-4 ${isDark ? "border-gray-700 bg-gray-800" : "border-gray-300 bg-white"}`}>
-              <label className={`block font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Screenshot / Recording (optional)</label>
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-white"
+              }`}
+            >
+              <label
+                className={`block font-medium mb-2 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Screenshot / Recording (optional)
+              </label>
               <input
                 type="file"
                 accept="image/*,video/*"
@@ -121,19 +239,34 @@ const BugReport = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className={`flex items-center justify-between px-4 sm:px-6 py-4 rounded-b-xl border-t
-                        ${isDark ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-gray-50"}`}>
-          <span className={`${isDark ? "text-gray-400" : "text-gray-500"} text-sm`}>Page 1 of 1</span>
+        <div
+          className={`flex items-center justify-between px-4 sm:px-6 py-4 rounded-b-xl border-t ${
+            isDark
+              ? "border-gray-700 bg-gray-900"
+              : "border-gray-200 bg-gray-50"
+          }`}
+        >
+          <span
+            className={`${
+              isDark ? "text-gray-400" : "text-gray-500"
+            } text-sm`}
+          >
+            Page 1 of 1
+          </span>
           <button
             onClick={handleSubmit}
-            disabled={!summary || !steps || !severity}
+            disabled={!summary || !steps || !severity || loading}
             className={`px-5 py-2 rounded-lg shadow ${
               !summary || !steps || !severity
-                ? `${isDark ? "bg-gray-400 text-gray-200 cursor-not-allowed" : "bg-gray-300 text-gray-400 cursor-not-allowed"}`
+                ? `${
+                    isDark
+                      ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                      : "bg-gray-300 text-gray-400 cursor-not-allowed"
+                  }`
                 : "bg-blue-800 text-white hover:bg-blue-700"
             }`}
           >
-            Submit
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
