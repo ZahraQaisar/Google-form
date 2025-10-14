@@ -50,37 +50,43 @@ const JobApplication = ({ onClose }) => {
 
   // ✅ Updated handleSubmit to send data to backend (without disturbing layout)
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!isFormValid) {
-      alert("Please fill all required fields correctly.");
-      return;
+  e.preventDefault();
+  if (!isFormValid) {
+    alert("Please fill all required fields correctly.");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        formType: "Job Application",
+        responses: {
+          fullName,
+          email,
+          phone,
+          role,
+          whyWorkHere,
+          resume: resume ? resume.name : "Uploaded PDF",
+        },
+      }),
+    });
+
+    if (response.ok) {
+      alert("Application Submitted Successfully!");
+      onClose();
+    } else {
+      const errorData = await response.json();
+      alert(errorData.message || "Failed to submit application.");
     }
+  } catch (error) {
+    alert("Server error. Please try again later.");
+  }
+};
 
-    const formData = new FormData();
-    formData.append("fullName", fullName);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("role", role);
-    formData.append("resume", resume);
-    formData.append("whyWorkHere", whyWorkHere);
-
-    try {
-      const response = await fetch("http://localhost:5000/api/job-applications", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        alert("Application Submitted Successfully!");
-        onClose();
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to submit application.");
-      }
-    } catch (error) {
-      alert("Server error. Please try again later.");
-    }
-  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

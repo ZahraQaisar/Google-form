@@ -26,11 +26,22 @@ const CourseEvaluation = ({ onClose }) => {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  // ✅ Basic validation
+  if (!fullName || instructorRating === "" || contentRating === "") {
+    alert("Please fill all required fields before submitting.");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+
+    // ✅ Get token and user info if logged in
     const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId"); // assuming you saved this at login
+    const userId = localStorage.getItem("userId") || null;
 
+    // ✅ Prepare form data for backend
     const formData = {
       formType: "Course Evaluation",
       responses: {
@@ -40,35 +51,35 @@ const CourseEvaluation = ({ onClose }) => {
         likeMost,
         improve,
       },
-      userId: userId || null,
+      userId,
     };
 
-    try {
-      setSubmitting(true);
-      const response = await fetch("http://localhost:5000/api/forms/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(formData),
-      });
+    // ✅ Send data to backend route (universal form handler)
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
-        alert("Thanks for your feedback!");
-        onClose();
-      } else {
-        alert(data.message || "Failed to submit feedback");
-      }
-    } catch (err) {
-      alert("Server error, please try again later.");
-      console.error(err);
-    } finally {
-      setSubmitting(false);
+    if (response.ok) {
+      alert(data.message || "Course evaluation submitted successfully!");
+      onClose();
+    } else {
+      alert(data.message || "Failed to submit feedback.");
     }
-  };
+  } catch (error) {
+    console.error("❌ Error submitting course evaluation:", error);
+    alert("Server error. Please try again later.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

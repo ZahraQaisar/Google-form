@@ -37,14 +37,17 @@ const EventRegister = ({ onClose }) => {
     const registration = { fullName, email, preferredTime, topics };
 
     try {
-      const response = await fetch("http://localhost:5000/api/forms/event-register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(registration),
-      });
+      const response = await fetch("http://localhost:5000/api/forms/submit", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    formType: "Event Registration",
+    responses: registration,
+  }),
+});
+
 
       if (response.ok) {
         alert("Thanks for registering!");

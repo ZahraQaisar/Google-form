@@ -21,28 +21,44 @@ const EmployeeFeedback = ({ onClose }) => {
 
   // ✅ Updated handleSubmit to also send data to backend
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const feedback = { workLifeBalance, managerSupport, comments };
-    console.log("Submitted Feedback:", feedback);
+  e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost:5000/api/forms/employee-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedback),
-      });
+  try {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId") || null;
 
-      if (response.ok) {
-        alert("Thanks for your response!");
-        onClose();
-      } else {
-        alert("Failed to submit feedback. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert("An error occurred while submitting feedback.");
+    const formData = {
+      formType: "Employee Feedback",
+      responses: {
+        workLifeBalance,
+        managerSupport,
+        comments,
+      },
+      userId,
+    };
+
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert("✅ Thanks for your feedback!");
+      onClose();
+    } else {
+      const err = await response.json();
+      alert(`❌ Submission failed: ${err.message || "Please try again."}`);
     }
-  };
+  } catch (error) {
+    console.error("❌ Error submitting feedback:", error);
+    alert("An error occurred while submitting feedback.");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

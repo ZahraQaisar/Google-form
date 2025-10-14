@@ -26,27 +26,43 @@ const LeadCapture = ({ onClose }) => {
 
   // ✅ Backend connected handleSubmit
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const registration = { fullName, email, company, lookingFor };
+  e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost:5000/api/forms/lead-capture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registration),
-      });
+  if (!fullName || !email || !company) {
+    alert("Please fill all required fields.");
+    return;
+  }
 
-      if (response.ok) {
-        alert("Thanks for registering!");
-        onClose();
-      } else {
-        alert("Submission failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("An error occurred. Please try again later.");
+  try {
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        formType: "Lead Capture",
+        responses: {
+          fullName,
+          email,
+          company,
+          lookingFor,
+        },
+      }),
+    });
+
+    if (response.ok) {
+      alert("Thanks for registering!");
+      onClose();
+    } else {
+      const errorData = await response.json();
+      alert(errorData.message || "Submission failed. Please try again.");
     }
-  };
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("An error occurred. Please try again later.");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

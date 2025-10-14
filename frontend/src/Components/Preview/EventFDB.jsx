@@ -27,28 +27,39 @@ const EventFeedback = ({ onClose }) => {
 
   // ✅ Added backend POST submission (safe integration)
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const feedback = { fullName, eventRating, likeMost, improve, heardFrom };
-    console.log("Submitted Feedback:", feedback);
+  e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost:5000/api/forms/event-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(feedback),
-      });
-
-      if (response.ok) {
-        alert("Thanks for your response!");
-        onClose();
-      } else {
-        alert("Failed to submit feedback. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert("An error occurred while submitting feedback.");
-    }
+  const formData = {
+    formTitle: "Event Feedback Form",
+    username: localStorage.getItem("username") || "Guest",
+    answers: {
+      fullName,
+      eventRating,
+      likeMost,
+      improve,
+      heardFrom,
+    },
   };
+
+  try {
+    const response = await fetch("http://localhost:5000/api/forms/event-feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert("✅ Feedback submitted successfully!");
+      onClose();
+    } else {
+      alert("❌ Failed to submit feedback. Please try again.");
+    }
+  } catch (error) {
+    console.error("❌ Error submitting feedback:", error);
+    alert("⚠️ Error connecting to the server.");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

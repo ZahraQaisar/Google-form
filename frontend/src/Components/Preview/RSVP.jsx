@@ -23,13 +23,34 @@ const RSVP = ({ onClose }) => {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const registration = { willAttend, mealPreference, allergies };
-    console.log("Submitted RSVP:", registration);
-    alert("Thanks for registering!");
-    onClose();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const formData = {
+    formTitle: "RSVP Form",
+    username: localStorage.getItem("username") || "Guest",
+    answers: { willAttend, mealPreference, allergies },
   };
+
+  try {
+    const response = await fetch("http://localhost:5000/api/forms/rsvp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert("✅ RSVP submitted successfully!");
+      onClose();
+    } else {
+      alert("❌ Failed to submit RSVP. Please try again.");
+    }
+  } catch (error) {
+    console.error("Submission Error:", error);
+    alert("⚠️ Error connecting to the server.");
+  }
+};
+
 
   // Conditional styles
   const sectionStyle =

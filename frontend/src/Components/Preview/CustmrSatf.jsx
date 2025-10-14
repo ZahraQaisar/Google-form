@@ -29,32 +29,55 @@ const CustomerSatisfaction = ({ onClose }) => {
 
   // Submit to backend
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const feedback = {
-      eventRating,
-      recommendScore,
-      likeMost,
-      improve,
-      heardFrom,
+  // ✅ Validation
+  if (!eventRating || !recommendScore || !heardFrom) {
+    alert("Please fill all required fields before submitting.");
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId") || null;
+
+    // ✅ Prepare unified form data for backend
+    const formData = {
+      formType: "Customer Satisfaction",
+      responses: {
+        eventRating,
+        recommendScore,
+        likeMost,
+        improve,
+        heardFrom,
+      },
+      userId,
     };
 
-    try {
-      setIsSubmitting(true);
-      const res = await axios.post(
-        "http://localhost:5000/api/forms/customer-satisfaction",
-        feedback
-      );
-      console.log("✅ Response saved:", res.data);
-      alert("✅ Thanks for your response!");
-      onClose();
-    } catch (error) {
-      console.error("❌ Error submitting feedback:", error);
-      alert("Something went wrong while submitting.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // ✅ Send request to the unified backend route
+    const res = await axios.post(
+      "http://localhost:5000/api/forms/submit",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+
+    alert(res.data.message || "✅ Thanks for your feedback!");
+    onClose();
+  } catch (error) {
+    console.error("❌ Error submitting feedback:", error);
+    alert("Server error — please try again later.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

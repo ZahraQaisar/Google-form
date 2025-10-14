@@ -25,57 +25,60 @@ const BugReport = ({ onClose }) => {
 
   const handleFileChange = (e) => setScreenshot(e.target.files[0]);
 
-  // ✅ Submit form to backend
+  // Submit form to backend
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!summary || !steps || !severity) {
-      alert("Please fill all required fields.");
-      return;
+  if (!summary || !steps || !severity) {
+    alert("Please fill all required fields.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // ✅ Get logged-in user (if any)
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId") || null;
+
+    // ✅ Prepare form data
+    const formData = {
+      formType: "Bug Report",
+      responses: {
+        summary,
+        steps,
+        severity,
+        screenshot: screenshot ? screenshot.name : "No file uploaded",
+      },
+      userId, // include user id if logged in
+    };
+
+    // ✅ Send data to backend (universal route)
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert(data.message || "Bug report submitted successfully!");
+      onClose();
+    } else {
+      alert(data.message || "Failed to submit bug report.");
     }
+  } catch (error) {
+    console.error("❌ Error submitting bug report:", error);
+    alert("Server error. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    try {
-      setLoading(true);
-
-      // Get logged-in user (if any)
-      const token = localStorage.getItem("token");
-
-      // Prepare form data
-      const formData = {
-        formType: "Bug Report",
-        responses: {
-          summary,
-          steps,
-          severity,
-          screenshot: screenshot ? screenshot.name : "No file uploaded",
-        },
-      };
-
-      // Send data to backend
-      const response = await fetch("http://localhost:5000/api/forms/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Bug report submitted successfully!");
-        onClose();
-      } else {
-        alert(data.message || "Failed to submit bug report.");
-      }
-    } catch (error) {
-      console.error("Error submitting bug report:", error);
-      alert("Server error. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const isDark = theme === "dark";
 
