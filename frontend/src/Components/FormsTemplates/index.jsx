@@ -13,7 +13,15 @@ import RSVPTemplate from "./RSVP";
 
 export const templateMap = {
   "Event Feedback": EventFeedbackTemplate,
-  "Bug Report": BugReportTemplate,
+  "Bug Report": {
+    name: "Bug Report",
+    forms: [
+      { id: 1, type: "Short answer", placeholder: "Summary" },
+      { id: 2, type: "Paragraph", placeholder: "Steps to reproduce" },
+      { id: 3, type: "Multiple choice", placeholder: "Severity" },
+      { id: 4, type: "File Upload", placeholder: "Screenshot / recording" },
+    ],
+  },
   "Job Application": JobApplicationTemplate,
   "Customer Satisfaction (CSAT + NPS)": CustomerSatisfactionTemplate,
   "Course Evaluation": CourseEvaluationTemplate,

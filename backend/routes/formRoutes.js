@@ -58,4 +58,39 @@ router.post("/rsvp", async (req, res) => {
   }
 });
 
+// ✅ Get all form responses (for Responses.jsx)
+router.get("/", async (req, res) => {
+  try {
+    const { searchText, startDate, endDate } = req.query;
+    let filter = {};
+
+    // Search and Date Filters
+    if (searchText) {
+      filter = {
+        ...filter,
+        $or: [
+          { "responses": { $regex: searchText, $options: "i" } },
+          { "formType": { $regex: searchText, $options: "i" } },
+        ],
+      };
+    }
+
+    if (startDate && endDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
+    // ✅ Use FormResponse model, not Form
+    const forms = await FormResponse.find(filter).sort({ createdAt: -1 });
+    res.json(forms);
+  } catch (error) {
+    console.error("❌ Error fetching responses:", error);
+    res.status(500).json({ error: "Failed to fetch forms" });
+  }
+});
+
+
+
 export default router;

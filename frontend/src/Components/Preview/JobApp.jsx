@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { useFormContext } from "../../context/FormContext"; // Provides dynamic template questions
+import axios from "axios";
 
 const JobApplication = ({ onClose }) => {
   const [theme, setTheme] = useState("light");
@@ -9,6 +11,11 @@ const JobApplication = ({ onClose }) => {
   const [role, setRole] = useState("");
   const [resume, setResume] = useState(null);
   const [whyWorkHere, setWhyWorkHere] = useState("");
+
+  // Dynamic fields state
+  const [dynamicResponses, setDynamicResponses] = useState({});
+  const { formQuestions } = useFormContext();
+  const dynamicFields = formQuestions["Job Application"] || [];
 
   // Validation
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -28,7 +35,6 @@ const JobApplication = ({ onClose }) => {
         document.documentElement.getAttribute("data-theme") || "light";
       setTheme(currentTheme);
     };
-
     updateTheme();
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, {
@@ -40,29 +46,36 @@ const JobApplication = ({ onClose }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type === "application/pdf") {
-      setResume(file);
-    } else {
+    if (file && file.type === "application/pdf") setResume(file);
+    else {
       setResume(null);
       alert("Please upload a valid PDF file.");
     }
   };
 
-  // ✅ Updated handleSubmit to send data to backend (without disturbing layout)
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!isFormValid) {
-    alert("Please fill all required fields correctly.");
-    return;
-  }
+  const handleDynamicChange = (id, value) => {
+    setDynamicResponses((prev) => ({ ...prev, [id]: value }));
+  };
 
-  try {
-    const response = await fetch("http://localhost:5000/api/forms/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Check dynamic required fields
+    const unfilledDynamic = dynamicFields.some(
+      (f) => f.required && !dynamicResponses[f.id]
+    );
+    if (unfilledDynamic) {
+      alert("Please fill all required dynamic fields.");
+      return;
+    }
+
+    if (!isFormValid) {
+      alert("Please fill all required static fields correctly.");
+      return;
+    }
+
+    try {
+      const payload = {
         formType: "Job Application",
         responses: {
           fullName,
@@ -71,22 +84,23 @@ const JobApplication = ({ onClose }) => {
           role,
           whyWorkHere,
           resume: resume ? resume.name : "Uploaded PDF",
+          ...dynamicResponses, // dynamic fields stored here
         },
-      }),
-    });
+      };
 
-    if (response.ok) {
-      alert("Application Submitted Successfully!");
+      const res = await axios.post(
+        "http://localhost:5000/api/forms/submit",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      alert(res.data.message || "Application Submitted Successfully!");
       onClose();
-    } else {
-      const errorData = await response.json();
-      alert(errorData.message || "Failed to submit application.");
+    } catch (error) {
+      console.error(error);
+      alert("Server error. Please try again later.");
     }
-  } catch (error) {
-    alert("Server error. Please try again later.");
-  }
-};
-
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
@@ -323,6 +337,75 @@ const JobApplication = ({ onClose }) => {
                 required
               />
             </div>
+          {/* ==== DYNAMIC QUESTIONS BELOW STATIC FIELDS ==== */}
+            {dynamicFields.map((field) => (
+              <div
+                key={field.id}
+                className={`border rounded-lg p-4 ${
+                  theme === "dark"
+                    ? "border-gray-700 bg-gray-900"
+                    : "border-gray-300 bg-white"
+                }`}
+              >
+                <label
+                  className={`block font-medium mb-2 ${
+                    theme === "dark" ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  {field.placeholder} {field.required && <span className="text-red-500">*</span>}
+                </label>
+
+                {field.type === "Short answer" && (
+                  <input
+                    type="text"
+                    value={dynamicResponses[field.id] || ""}
+                    onChange={(e) => handleDynamicChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      theme === "dark"
+                        ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                        : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                    }`}
+                  />
+                )}
+
+                {field.type === "Paragraph" && (
+                  <textarea
+                    rows="4"
+                    value={dynamicResponses[field.id] || ""}
+                    onChange={(e) => handleDynamicChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      theme === "dark"
+                        ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                        : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                    }`}
+                  />
+                )}
+
+                {field.type === "Multiple choice" && (
+                  <div className="space-y-2">
+                    {field.options?.map((option, idx) => (
+                      <label
+                        key={idx}
+                        className={`flex items-center space-x-2 ${
+                          theme === "dark" ? "text-gray-100" : "text-gray-900"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`mcq-${field.id}`}
+                          value={option}
+                          checked={dynamicResponses[field.id] === option}
+                          onChange={() => handleDynamicChange(field.id, option)}
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </form>
         </div>
 

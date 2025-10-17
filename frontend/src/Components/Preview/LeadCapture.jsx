@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { useFormContext } from "../../context/FormContext"; // Provides dynamic template questions
+import axios from "axios";
 
 const LeadCapture = ({ onClose }) => {
   const [theme, setTheme] = useState("light");
@@ -7,6 +9,11 @@ const LeadCapture = ({ onClose }) => {
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
   const [lookingFor, setLookingFor] = useState("");
+
+  // Dynamic fields state
+  const [dynamicResponses, setDynamicResponses] = useState({});
+  const { formQuestions } = useFormContext();
+  const dynamicFields = formQuestions["Lead Capture"] || [];
 
   useEffect(() => {
     const updateTheme = () => {
@@ -24,45 +31,53 @@ const LeadCapture = ({ onClose }) => {
     return () => observer.disconnect();
   }, []);
 
-  // ✅ Backend connected handleSubmit
+  const handleDynamicChange = (id, value) => {
+    setDynamicResponses((prev) => ({ ...prev, [id]: value }));
+  };
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!fullName || !email || !company) {
-    alert("Please fill all required fields.");
-    return;
-  }
+    // Validate required static fields
+    if (!fullName || !email || !company) {
+      alert("Please fill all required fields.");
+      return;
+    }
 
-  try {
-    const response = await fetch("http://localhost:5000/api/forms/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    // Validate dynamic required fields
+    const unfilledDynamic = dynamicFields.some(
+      (f) => f.required && !dynamicResponses[f.id]
+    );
+    if (unfilledDynamic) {
+      alert("Please fill all required dynamic fields.");
+      return;
+    }
+
+    try {
+      const payload = {
         formType: "Lead Capture",
         responses: {
           fullName,
           email,
           company,
           lookingFor,
+          ...dynamicResponses, // dynamic responses added here
         },
-      }),
-    });
+      };
 
-    if (response.ok) {
-      alert("Thanks for registering!");
+      const response = await axios.post(
+        "http://localhost:5000/api/forms/submit",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      alert(response.data.message || "Thanks for registering!");
       onClose();
-    } else {
-      const errorData = await response.json();
-      alert(errorData.message || "Submission failed. Please try again.");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("An error occurred. Please try again later.");
     }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("An error occurred. Please try again later.");
-  }
-};
-
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
@@ -108,138 +123,160 @@ const LeadCapture = ({ onClose }) => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
+            {/* ==== STATIC FIELDS KEPT AS IS ==== */}
             <div
               className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
+                theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"
               }`}
             >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 Your name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2
-                  ${
-                    theme === "dark"
-                      ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                      : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                  }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                  theme === "dark"
+                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                }`}
                 required
               />
             </div>
 
-            {/* Email */}
             <div
               className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
+                theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"
               }`}
             >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2
-                  ${
-                    theme === "dark"
-                      ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                      : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                  }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                  theme === "dark"
+                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                }`}
                 required
               />
             </div>
 
-            {/* Company */}
             <div
               className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
+                theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"
               }`}
             >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 Company
               </label>
               <input
                 type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2
-                  ${
-                    theme === "dark"
-                      ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                      : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                  }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                  theme === "dark"
+                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                }`}
               />
             </div>
 
-            {/* Looking For */}
             <div
               className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
+                theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"
               }`}
             >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 What are you looking for?
               </label>
               <textarea
                 rows="4"
                 value={lookingFor}
                 onChange={(e) => setLookingFor(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2
-                  ${
-                    theme === "dark"
-                      ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                      : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                  }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                  theme === "dark"
+                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                }`}
               />
             </div>
+
+            {/* ==== DYNAMIC QUESTIONS BELOW STATIC FIELDS ==== */}
+            {dynamicFields.map((field) => (
+              <div
+                key={field.id}
+                className={`border rounded-lg p-4 ${
+                  theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"
+                }`}
+              >
+                <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                  {field.placeholder} {field.required && <span className="text-red-500">*</span>}
+                </label>
+
+                {field.type === "Short answer" && (
+                  <input
+                    type="text"
+                    value={dynamicResponses[field.id] || ""}
+                    onChange={(e) => handleDynamicChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      theme === "dark"
+                        ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                        : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                    }`}
+                  />
+                )}
+
+                {field.type === "Paragraph" && (
+                  <textarea
+                    rows="4"
+                    value={dynamicResponses[field.id] || ""}
+                    onChange={(e) => handleDynamicChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      theme === "dark"
+                        ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
+                        : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
+                    }`}
+                  />
+                )}
+
+                {field.type === "Multiple choice" && (
+                  <div className="space-y-2">
+                    {field.options?.map((option, idx) => (
+                      <label
+                        key={idx}
+                        className={`flex items-center space-x-2 ${theme === "dark" ? "text-gray-100" : "text-gray-900"}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`mcq-${field.id}`}
+                          value={option}
+                          checked={dynamicResponses[field.id] === option}
+                          onChange={() => handleDynamicChange(field.id, option)}
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </form>
         </div>
 
         {/* Footer */}
         <div
-          className={`flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl
-                        ${
-                          theme === "dark"
-                            ? "border-gray-700 bg-gray-900"
-                            : "border-gray-200 bg-gray-50"
-                        }`}
+          className={`flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl ${
+            theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-gray-50"
+          }`}
         >
-          <span
-            className={
-              theme === "dark"
-                ? "text-gray-400 text-sm"
-                : "text-gray-500 text-sm"
-            }
-          >
+          <span className={theme === "dark" ? "text-gray-400 text-sm" : "text-gray-500 text-sm"}>
             Page 1 of 1
           </span>
           <button

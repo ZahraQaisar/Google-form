@@ -1,22 +1,14 @@
+// backend/models/FormResponse.js
 import mongoose from "mongoose";
 
 const formResponseSchema = new mongoose.Schema(
   {
-    formType: {
-      type: String,
-      required: true,
-    },
-    responses: {
-      type: Object, // stores dynamic form answers (key-value)
-      required: true,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false, // optional — only if user is logged in
-    },
+    formType: { type: String, required: true },
+    responses: { type: Object, required: true },
+    user: { type: String, default: null },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("FormResponse", formResponseSchema);
+const FormResponse = mongoose.model("FormResponse", formResponseSchema);
+export default FormResponse;

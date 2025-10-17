@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
+import { useFormContext } from "../../context/FormContext";
 import axios from "axios";
 
 const CustomerSatisfaction = ({ onClose }) => {
@@ -11,7 +12,12 @@ const CustomerSatisfaction = ({ onClose }) => {
   const [heardFrom, setHeardFrom] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Detect theme (light/dark)
+  const { formQuestions } = useFormContext();
+  const dynamicFields = formQuestions["Customer Satisfaction (CSAT + NPS)"] || [];
+
+  const [responses, setResponses] = useState({}); // for dynamic fields
+
+  // Theme detection
   useEffect(() => {
     const updateTheme = () => {
       const currentTheme =
@@ -27,57 +33,67 @@ const CustomerSatisfaction = ({ onClose }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Submit to backend
+  const handleChange = (id, value) => {
+    setResponses((prev) => ({ ...prev, [id]: value }));
+  };
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // ✅ Validation
-  if (!eventRating || !recommendScore || !heardFrom) {
-    alert("Please fill all required fields before submitting.");
-    return;
-  }
+    // Validation for static fields
+    if (!eventRating || !recommendScore || !heardFrom) {
+      alert("Please fill all required fields before submitting.");
+      return;
+    }
 
-  try {
-    setIsSubmitting(true);
-
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId") || null;
-
-    // ✅ Prepare unified form data for backend
-    const formData = {
-      formType: "Customer Satisfaction",
-      responses: {
-        eventRating,
-        recommendScore,
-        likeMost,
-        improve,
-        heardFrom,
-      },
-      userId,
-    };
-
-    // ✅ Send request to the unified backend route
-    const res = await axios.post(
-      "http://localhost:5000/api/forms/submit",
-      formData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
+    // Validation for dynamic fields
+    const requiredUnfilled = dynamicFields.some(
+      (f) => f.required && !responses[f.id]
     );
+    if (requiredUnfilled) {
+      alert("Please fill all required dynamic fields.");
+      return;
+    }
 
-    alert(res.data.message || "✅ Thanks for your feedback!");
-    onClose();
-  } catch (error) {
-    console.error("❌ Error submitting feedback:", error);
-    alert("Server error — please try again later.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      setIsSubmitting(true);
 
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId") || null;
+
+      const payload = {
+        formType: "Customer Satisfaction",
+        responses: {
+          eventRating,
+          recommendScore,
+          likeMost,
+          improve,
+          heardFrom,
+          ...responses, // include dynamic fields
+        },
+        userId,
+      };
+
+      const res = await axios.post(
+        "http://localhost:5000/api/forms/submit",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
+      );
+
+      alert(res.data.message || "Thanks for your feedback!");
+      onClose();
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("Server error — please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
@@ -121,19 +137,9 @@ const CustomerSatisfaction = ({ onClose }) => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Overall satisfaction */}
-            <div
-              className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+            {/* === STATIC FIELDS === */}
+            <div className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 Overall satisfaction <span className="text-red-500">*</span>
               </label>
               <input
@@ -145,42 +151,19 @@ const CustomerSatisfaction = ({ onClose }) => {
                 className="w-full"
                 required
               />
-              <div
-                className={
-                  theme === "dark"
-                    ? "flex justify-between text-xs text-gray-400 mt-1"
-                    : "flex justify-between text-xs text-gray-500 mt-1"
-                }
-              >
+              <div className={theme === "dark" ? "flex justify-between text-xs text-gray-400 mt-1" : "flex justify-between text-xs text-gray-500 mt-1"}>
                 <span>Bad</span>
                 <span>Great</span>
               </div>
             </div>
 
-            {/* Frequency */}
-            <div
-              className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                How often do you use the product?{" "}
-                <span className="text-red-500">*</span>
+            <div className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                How often do you use the product? <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {["Daily", "Weekly", "Monthly", "Rarely"].map((option) => (
-                  <label
-                    key={option}
-                    className={`flex items-center space-x-2 ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-900"
-                    }`}
-                  >
+                  <label key={option} className={`flex items-center space-x-2 ${theme === "dark" ? "text-gray-200" : "text-gray-900"}`}>
                     <input
                       type="radio"
                       name="heardFrom"
@@ -188,11 +171,7 @@ const CustomerSatisfaction = ({ onClose }) => {
                       checked={heardFrom === option}
                       onChange={(e) => setHeardFrom(e.target.value)}
                       required
-                      className={
-                        theme === "dark"
-                          ? "accent-gray-400"
-                          : "accent-blue-600"
-                      }
+                      className={theme === "dark" ? "accent-gray-400" : "accent-blue-600"}
                     />
                     <span>{option}</span>
                   </label>
@@ -200,21 +179,9 @@ const CustomerSatisfaction = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Recommend Score */}
-            <div
-              className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                How likely are you to recommend us? (0–10){" "}
-                <span className="text-red-500">*</span>
+            <div className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                How likely are you to recommend us? (0–10) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -222,95 +189,101 @@ const CustomerSatisfaction = ({ onClose }) => {
                 max="10"
                 value={recommendScore}
                 onChange={(e) => setRecommendScore(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-                  theme === "dark"
-                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme === "dark" ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"}`}
                 required
               />
             </div>
 
-            {/* Like Most */}
-            <div
-              className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+            <div className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 What did you like most?
               </label>
               <textarea
                 rows="4"
                 value={likeMost}
                 onChange={(e) => setLikeMost(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-                  theme === "dark"
-                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme === "dark" ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"}`}
               />
             </div>
 
-            {/* Improve */}
-            <div
-              className={`border rounded-lg p-4 ${
-                theme === "dark"
-                  ? "border-gray-700 bg-gray-900"
-                  : "border-gray-300 bg-white"
-              }`}
-            >
-              <label
-                className={`block font-medium mb-2 ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
+            <div className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+              <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
                 What can we improve?
               </label>
               <textarea
                 rows="4"
                 value={improve}
                 onChange={(e) => setImprove(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-                  theme === "dark"
-                    ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700"
-                    : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme === "dark" ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"}`}
               />
             </div>
+
+            {/* === DYNAMIC FIELDS BELOW STATIC ONES === */}
+            {dynamicFields.map((field) => (
+              <div key={field.id} className={`border rounded-lg p-4 ${theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-white"}`}>
+                <label className={`block font-medium mb-2 ${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+                  {field.placeholder} {field.required && <span className="text-red-500">*</span>}
+                </label>
+
+                {field.type === "Short answer" && (
+                  <input
+                    type="text"
+                    value={responses[field.id] || ""}
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme === "dark" ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"}`}
+                  />
+                )}
+
+                {field.type === "Paragraph" && (
+                  <textarea
+                    rows="4"
+                    value={responses[field.id] || ""}
+                    onChange={(e) => handleChange(field.id, e.target.value)}
+                    required={field.required || false}
+                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme === "dark" ? "bg-gray-900 text-gray-100 placeholder-gray-400 border-gray-700 focus:ring-gray-700" : "bg-white text-gray-900 placeholder-gray-400 border-gray-300 focus:ring-blue-500"}`}
+                  />
+                )}
+
+                {field.type === "Multiple choice" && (
+                  <div className="space-y-2">
+                    {field.options?.map((option, idx) => (
+                      <label key={idx} className={`flex items-center space-x-2 ${theme === "dark" ? "text-gray-100" : "text-gray-900"}`}>
+                        <input
+                          type="radio"
+                          name={`mcq-${field.id}`}
+                          value={option}
+                          checked={responses[field.id] === option}
+                          onChange={() => handleChange(field.id, option)}
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </form>
         </div>
 
         {/* Footer */}
         <div
           className={`flex items-center justify-between border-t px-4 sm:px-6 py-4 rounded-b-xl ${
-            theme === "dark"
-              ? "border-gray-700 bg-gray-900"
-              : "border-gray-200 bg-gray-50"
+            theme === "dark" ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-gray-50"
           }`}
         >
-          <span
-            className={
-              theme === "dark"
-                ? "text-gray-400 text-sm"
-                : "text-gray-500 text-sm"
-            }
-          >
+          <span className={theme === "dark" ? "text-gray-400 text-sm" : "text-gray-500 text-sm"}>
             Page 1 of 1
           </span>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !eventRating || !recommendScore}
+            disabled={
+              isSubmitting || !eventRating || !recommendScore || !heardFrom
+            }
             className={`px-5 py-2 rounded-lg shadow ${
               isSubmitting
                 ? "bg-gray-400 text-gray-200 cursor-wait"
-                : !eventRating || !recommendScore
+                : !eventRating || !recommendScore || !heardFrom
                 ? theme === "dark"
                   ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                   : "bg-gray-300 text-gray-400 cursor-not-allowed"

@@ -74,8 +74,8 @@ export default function Forms({ forms, setForms }) {
               isDark ? "border-white/20" : "border-gray-200"
             }`}
           >
-            {forms.length > 0 ? (
-              forms.map((form) => {
+            {forms && forms.length > 0 ? (
+              forms?.map((form) => {
                 const ComponentToRender = componentMap[form.type];
                 if (!ComponentToRender) return null;
                 return (
