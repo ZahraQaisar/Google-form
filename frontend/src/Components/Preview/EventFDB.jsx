@@ -31,54 +31,61 @@ const EventFeedback = ({ onClose }) => {
     setResponses((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validate dynamic required fields
-    const requiredUnfilled = dynamicFields.some(f => f.required && !responses[f.id]);
-    if (requiredUnfilled) {
-      alert("Please fill all required dynamic fields.");
-      return;
-    }
+  // ===== LOGIN CHECK =====
+  const username = localStorage.getItem("username"); // get logged-in username
+  if (!username) {
+    alert("Please login first to submit the feedback.");
+    return; // stop submission if not logged in
+  }
 
-    try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId") || null;
+  // Validate dynamic required fields
+  const requiredUnfilled = dynamicFields.some(f => f.required && !responses[f.id]);
+  if (requiredUnfilled) {
+    alert("Please fill all required dynamic fields.");
+    return;
+  }
 
-      const payload = {
-        formType: "Event Feedback",
-        responses: {
-          fullName,
-          eventRating,
-          likeMost,
-          improve,
-          heardFrom,
-          ...responses, // include dynamic fields
+  try {
+    setIsSubmitting(true);
+
+    const token = localStorage.getItem("token");
+
+    const payload = {
+      formType: "Event Feedback",
+      user: username, // send the logged-in username
+      responses: {
+        fullName,
+        eventRating,
+        likeMost,
+        improve,
+        heardFrom,
+        ...responses, // include dynamic fields
+      },
+    };
+
+    const res = await axios.post(
+      "http://localhost:5000/api/forms/submit",
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-        userId,
-      };
+      }
+    );
 
-      const res = await axios.post(
-        "http://localhost:5000/api/forms/submit",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        }
-      );
-
-      alert(res.data.message || "Thanks for your feedback!");
-      onClose();
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert("Error submitting feedback. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    alert(res.data.message || "Thanks for your feedback!");
+    onClose();
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    alert("Error submitting feedback. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

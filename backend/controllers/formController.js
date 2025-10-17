@@ -1,26 +1,24 @@
-// backend/controllers/formController.js
 import FormResponse from "../models/FormResponse.js";
 
 export const submitForm = async (req, res) => {
   try {
-    const { formType, responses, userId } = req.body;
+    // Extract user and the rest of the answers
+    const { user, formType, ...responses } = req.body;
 
-    // Validate input
-    if (!formType || !responses) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!user) {
+      return res.status(400).json({ error: "User not logged in" });
     }
 
-    // Create new form entry
-    const formResponse = new FormResponse({
-      formType,          // Example: "Customer Satisfaction", "Job Application"
-      responses,         // All form fields data
-      user: userId || null,
+    const form = new FormResponse({
+      formType,
+      user,        // top-level user
+      responses,   // all answers go inside 'responses'
     });
 
-    await formResponse.save();
-    res.status(201).json({ message: `${formType} form submitted successfully!` });
+    await form.save();
+    res.json({ message: `${formType} submitted successfully!` });
   } catch (err) {
     console.error("Error saving form:", err);
-    res.status(500).json({ message: "Server error while saving form" });
+    res.status(500).json({ error: "Failed to submit form" });
   }
 };

@@ -40,44 +40,59 @@ const RSVP = ({ onClose }) => {
     setDynamicResponses((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validate required static fields
-    if (!willAttend || !mealPreference) {
-      alert("Please fill all required fields.");
-      return;
-    }
+  // ===== LOGIN CHECK =====
+  const username = localStorage.getItem("username");
+  if (!username) {
+    alert("Please login first to submit the form.");
+    return; // Stop submission if not logged in
+  }
 
-    // Validate required dynamic fields
-    const unfilledDynamic = dynamicFields.some((f) => f.required && !dynamicResponses[f.id]);
-    if (unfilledDynamic) {
-      alert("Please fill all required dynamic fields.");
-      return;
-    }
+  // Validate required static fields
+  if (!willAttend || !mealPreference || mealPreference === "Select..") {
+    alert("Please fill all required fields.");
+    return;
+  }
 
-    const payload = {
-      formType: "RSVP",
-      username: localStorage.getItem("username") || "Guest",
-      responses: {
-        willAttend,
-        mealPreference,
-        allergies,
-        ...dynamicResponses,
-      },
-    };
+  // Validate required dynamic fields
+  const unfilledDynamic = dynamicFields.some(
+    (f) => f.required && !dynamicResponses[f.id]
+  );
+  if (unfilledDynamic) {
+    alert("Please fill all required dynamic fields.");
+    return;
+  }
 
-    try {
-      const response = await axios.post("http://localhost:5000/api/forms/submit", payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      alert(response.data.message || "RSVP submitted successfully!");
-      onClose();
-    } catch (error) {
-      console.error("Error submitting RSVP:", error);
-      alert("Error connecting to the server.");
-    }
+  // Prepare payload
+  const payload = {
+    formType: "RSVP",
+    user: username, // top-level field for backend
+    responses: {
+      willAttend,
+      mealPreference,
+      allergies,
+      ...dynamicResponses,
+    },
   };
+
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/api/forms/submit",
+      payload,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    alert(response.data.message || "RSVP submitted successfully!");
+    onClose();
+  } catch (error) {
+    console.error("Error submitting RSVP:", error);
+    alert("Error connecting to the server.");
+  }
+};
+
 
   // Styles
   const sectionStyle = theme === "dark" ? "border-gray-700 bg-gray-900 text-gray-100" : "border-gray-300 bg-white text-gray-900";

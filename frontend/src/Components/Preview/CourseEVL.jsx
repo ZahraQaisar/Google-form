@@ -32,10 +32,17 @@ const CourseEvaluation = ({ onClose }) => {
   }, []);
 
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // ✅ Basic validation
+  // ===== CHECK IF USER IS LOGGED IN =====
+  const username = localStorage.getItem("username"); // get logged-in username
+  if (!username) {
+    alert("Please login first to submit your evaluation.");
+    return; // stop submission if user is not logged in
+  }
+
+  // Basic validation
   if (!fullName || instructorRating === "" || contentRating === "") {
     alert("Please fill all required fields before submitting.");
     return;
@@ -44,32 +51,33 @@ const CourseEvaluation = ({ onClose }) => {
   try {
     setSubmitting(true);
 
-    // ✅ Get token and user info if logged in
     const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId") || null;
 
-    // ✅ Prepare form data for backend
+    // Prepare payload including logged-in username
     const formData = {
       formType: "Course Evaluation",
+      user: username, // logged-in username
       responses: {
         fullName,
         instructorRating,
         contentRating,
         likeMost,
         improve,
+        // TODO: include dynamic field responses if you implement state for them
       },
-      userId,
     };
 
-    // ✅ Send data to backend route (universal form handler)
-    const response = await fetch("http://localhost:5000/api/forms/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(formData),
-    });
+    const response = await fetch(
+      "http://localhost:5000/api/forms/submit",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(formData),
+      }
+    );
 
     const data = await response.json();
 
@@ -86,6 +94,7 @@ const CourseEvaluation = ({ onClose }) => {
     setSubmitting(false);
   }
 };
+
 
 
 return (

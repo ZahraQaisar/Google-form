@@ -32,43 +32,57 @@ const BugReport = ({ onClose }) => {
   };
 
   // ✅ Submit form to backend
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-      const formResponses = {};
-      fields.forEach((field) => {
-        formResponses[field.placeholder || field.label || "Untitled"] =
-          responses[field.id] || "";
-      });
+  // ===== CHECK IF USER IS LOGGED IN =====
+  const username = localStorage.getItem("username"); // get logged-in username
+  if (!username) {
+    alert("Please login first to submit your bug report.");
+    return; // stop submission if user is not logged in
+  }
 
-      const payload = {
-        formType: "Bug Report",
-        responses: formResponses,
-      };
+  try {
+    setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/forms/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    // Prepare responses
+    const formResponses = {};
+    fields.forEach((field) => {
+      formResponses[field.placeholder || field.label || "Untitled"] =
+        responses[field.id] || "";
+    });
 
-      const data = await response.json();
+    // ✅ Payload with logged-in username
+    const payload = {
+      formType: "Bug Report",
+      user: username, // logged-in username
+      responses: formResponses,
+    };
 
-      if (response.ok) {
-        alert("Bug Report submitted successfully!");
-        onClose();
-      } else {
-        alert(data.message || "Failed to submit form.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Server error. Please try again later.");
-    } finally {
-      setLoading(false);
+    const response = await fetch("http://localhost:5000/api/forms/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Bug Report submitted successfully!");
+      onClose();
+    } else {
+      alert(data.message || "Failed to submit form.");
     }
-  };
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("Server error. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

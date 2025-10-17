@@ -35,49 +35,58 @@ const LeadCapture = ({ onClose }) => {
     setDynamicResponses((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validate required static fields
-    if (!fullName || !email || !company) {
-      alert("Please fill all required fields.");
-      return;
-    }
+  // ===== LOGIN CHECK =====
+  const username = localStorage.getItem("username");
+  if (!username) {
+    alert("Please login first to submit the form.");
+    return; // Stop submission if not logged in
+  }
 
-    // Validate dynamic required fields
-    const unfilledDynamic = dynamicFields.some(
-      (f) => f.required && !dynamicResponses[f.id]
-    );
-    if (unfilledDynamic) {
-      alert("Please fill all required dynamic fields.");
-      return;
-    }
+  // Validate required static fields
+  if (!fullName || !email || !company) {
+    alert("Please fill all required fields.");
+    return;
+  }
 
-    try {
-      const payload = {
-        formType: "Lead Capture",
-        responses: {
-          fullName,
-          email,
-          company,
-          lookingFor,
-          ...dynamicResponses, // dynamic responses added here
-        },
-      };
+  // Validate required dynamic fields
+  const unfilledDynamic = dynamicFields.some(
+    (f) => f.required && !dynamicResponses[f.id]
+  );
+  if (unfilledDynamic) {
+    alert("Please fill all required dynamic fields.");
+    return;
+  }
 
-      const response = await axios.post(
-        "http://localhost:5000/api/forms/submit",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      alert(response.data.message || "Thanks for registering!");
-      onClose();
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("An error occurred. Please try again later.");
-    }
+  // Prepare payload
+  const payload = {
+    formType: "Lead Capture",
+    user: username, // top-level field for backend
+    responses: {
+      fullName,
+      email,
+      company,
+      lookingFor,
+      ...dynamicResponses,
+    },
   };
+
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/api/forms/submit",
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    alert(response.data.message || "Thanks for registering!");
+    onClose();
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    alert("An error occurred. Please try again later.");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">

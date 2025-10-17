@@ -57,50 +57,60 @@ const JobApplication = ({ onClose }) => {
     setDynamicResponses((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Check dynamic required fields
-    const unfilledDynamic = dynamicFields.some(
-      (f) => f.required && !dynamicResponses[f.id]
-    );
-    if (unfilledDynamic) {
-      alert("Please fill all required dynamic fields.");
-      return;
-    }
+  // ===== LOGIN CHECK =====
+  const username = localStorage.getItem("username");
+  if (!username) {
+    alert("Please login first to submit the form.");
+    return; // Stop submission if not logged in
+  }
 
-    if (!isFormValid) {
-      alert("Please fill all required static fields correctly.");
-      return;
-    }
+  // Validate static fields
+  if (!isFormValid) {
+    alert("Please fill all required static fields correctly.");
+    return;
+  }
 
-    try {
-      const payload = {
-        formType: "Job Application",
-        responses: {
-          fullName,
-          email,
-          phone,
-          role,
-          whyWorkHere,
-          resume: resume ? resume.name : "Uploaded PDF",
-          ...dynamicResponses, // dynamic fields stored here
-        },
-      };
+  // Validate dynamic required fields
+  const unfilledDynamic = dynamicFields.some(
+    (f) => f.required && !dynamicResponses[f.id]
+  );
+  if (unfilledDynamic) {
+    alert("Please fill all required dynamic fields.");
+    return;
+  }
 
-      const res = await axios.post(
-        "http://localhost:5000/api/forms/submit",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      alert(res.data.message || "Application Submitted Successfully!");
-      onClose();
-    } catch (error) {
-      console.error(error);
-      alert("Server error. Please try again later.");
-    }
+  // Prepare payload
+  const payload = {
+    formType: "Job Application",
+    user: username, // logged-in user sent to backend
+    responses: {
+      fullName,
+      email,
+      phone,
+      role,
+      whyWorkHere,
+      resume: resume ? resume.name : "Uploaded PDF",
+      ...dynamicResponses,
+    },
   };
+
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/forms/submit",
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    alert(res.data.message || "Application Submitted Successfully!");
+    onClose();
+  } catch (error) {
+    console.error(error);
+    alert("Server error. Please try again later.");
+  }
+};
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 px-4 sm:px-6">
