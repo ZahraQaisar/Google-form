@@ -50,12 +50,13 @@ export default function Responses() {
     { name: "paragraph", value: responses.filter(r => r.formType === "Paragraph").length },
   ];
 
-  const questionTypesData2 = [
-    { name: "Excellent", value: responses.filter(r => JSON.stringify(r.responses).includes("Excellent")).length },
-    { name: "Good", value: responses.filter(r => JSON.stringify(r.responses).includes("Good")).length },
-    { name: "Okay", value: responses.filter(r => JSON.stringify(r.responses).includes("Okay")).length },
-    { name: "Poor", value: responses.filter(r => JSON.stringify(r.responses).includes("Poor")).length },
-  ];
+const questionTypesData2 = [
+  { name: "Excellent", value: responses.filter(r => JSON.stringify(r.responses ?? {}).includes("Excellent")).length },
+  { name: "Good", value: responses.filter(r => JSON.stringify(r.responses ?? {}).includes("Good")).length },
+  { name: "Okay", value: responses.filter(r => JSON.stringify(r.responses ?? {}).includes("Okay")).length },
+  { name: "Poor", value: responses.filter(r => JSON.stringify(r.responses ?? {}).includes("Poor")).length },
+];
+
 
   const responsesOverTimeData = responses.map((r) => ({
     date: new Date(r.createdAt).toLocaleDateString(),

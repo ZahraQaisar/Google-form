@@ -70,18 +70,33 @@ const AppContent = () => {
         <Sidebar
           onBrowseTemplatesClick={() => setShowTemplates(true)}
           onAddSection={() => addSectionRef.current && addSectionRef.current()}
-          onSelectQuestion={(label) => {
-  if (!selectedTemplate) return; // safeguard
+onSelectQuestion={(type) => {
+  if (!selectedTemplate) return;
 
-  const newQuestion = { id: Date.now(), type: label };
+  let newQuestion = { id: Date.now() + Math.random(), type, required: false };
+
+  // For different types, add properties
+  if (type === "Short answer" || type === "Paragraph") {
+    newQuestion.placeholder = "Enter your question here";
+  } else if (type === "Multiple choice") {
+    newQuestion.placeholder = "Enter your question here";
+    newQuestion.options = ["Option 1", "Option 2"]; // default options
+  } else if (type === "Linear scale") {
+    newQuestion.placeholder = "Rate this question";
+  } else if (type === "File Upload") {
+    newQuestion.placeholder = "Upload file";
+  }
+
   // Add to builder
   setForms((prev) => [...(prev || []), newQuestion]);
-  // Add to template-specific context for syncing preview
+
+  // Sync to template context for preview
   setQuestions(selectedTemplate, [
     ...(formQuestions[selectedTemplate] || []),
     newQuestion,
   ]);
 }}
+
 
           onAiSuggestClick={handleAiSuggest}
         />
