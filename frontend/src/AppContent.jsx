@@ -58,13 +58,18 @@ const AppContent = () => {
       <div className="flex flex-col lg:flex-row bg-base-100 text-base-content min-h-screen transition-colors duration-300">
         <div className="flex-1 order-1 lg:order-none overflow-y-auto max-h-screen scrollbar-none px-4 sm:px-6 lg:px-10 py-6">
           {currentView === "builder" ? (
-            <div className="max-w-4xl mx-auto w-full">
-              <Form1 onAddSectionFromSidebar={addSectionRef} />
-              <Forms forms={forms} setForms={setForms} />
-            </div>
-          ) : (
-            <Responses />
-          )}
+  <div className="max-w-4xl mx-auto w-full">
+    <Form1 onAddSectionFromSidebar={addSectionRef} />
+    <Forms
+      selectedTemplate={selectedTemplate}
+      forms={forms}
+      setForms={setForms}
+    />
+  </div>
+) : (
+  <Responses />
+)}
+
         </div>
 
         <Sidebar

@@ -10,9 +10,13 @@ import DateComponent from "./Forms/Date";
 import TimeComponent from "./Forms/Time";
 import FileUploadComponent from "./Forms/FileUpload";
 import AiSuggestComponent from "./Forms/AiSuggest";
+import { useFormContext } from "../context/FormContext";
 
-export default function Forms({ forms, setForms }) {
+
+export default function Forms({ forms, setForms, selectedTemplate }) {
   const [theme, setTheme] = useState("light");
+  const { formQuestions, setQuestions } = useFormContext();
+
 
   // Sidebar-style dark theme detection
   useEffect(() => {
@@ -52,9 +56,20 @@ export default function Forms({ forms, setForms }) {
     }
   };
 
-  const handleDeleteComponent = (id) => {
-    setForms((prev) => prev.filter((comp) => comp.id !== id));
-  };
+const handleDeleteComponent = (id) => {
+  // 🔹 Remove from builder UI
+  setForms((prev) => prev.filter((comp) => comp.id !== id));
+
+  // 🔹 Remove from shared FormContext (so preview updates)
+  if (selectedTemplate) {
+    setQuestions(
+      selectedTemplate,
+      (formQuestions[selectedTemplate] || []).filter((q) => q.id !== id)
+    );
+  }
+};
+
+
 
   return (
     <div
@@ -96,13 +111,24 @@ export default function Forms({ forms, setForms }) {
                       minLabel={form.minLabel}
                       maxLabel={form.maxLabel}
                       scale={form.scale}
+                      // onChange={(field, newValue) => {
+                      //   setForms((prev) =>
+                      //     prev.map((f) =>
+                      //       f.id === form.id ? { ...f, [field]: newValue } : f
+                      //     )
+                      //   );
+                      // }}
                       onChange={(field, newValue) => {
-                        setForms((prev) =>
-                          prev.map((f) =>
-                            f.id === form.id ? { ...f, [field]: newValue } : f
-                          )
-                        );
-                      }}
+  setForms((prev) =>
+    prev.map((f) => (f.id === form.id ? { ...f, [field]: newValue } : f))
+  );
+
+  // 🔹 Sync the same update to FormContext for live preview
+  setQuestions(selectedTemplate, (formQuestions[selectedTemplate] || []).map((q) =>
+    q.id === form.id ? { ...q, [field]: newValue } : q
+  ));
+}}
+
                       onCopy={() => handleCopyComponent(form.id)}
                       onDelete={() => handleDeleteComponent(form.id)}
                     />

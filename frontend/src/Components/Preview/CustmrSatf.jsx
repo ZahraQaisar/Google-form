@@ -79,16 +79,17 @@ const handleSubmit = async (e) => {
       },
     };
 
-    const res = await axios.post(
-      "http://localhost:5000/api/forms/submit",
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
+const res = await axios.post(
+  `${import.meta.env.VITE_API_URL}/api/forms/submit`,
+  payload,
+  {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  }
+);
+
 
     alert(res.data.message || "Thanks for your feedback!");
     onClose();

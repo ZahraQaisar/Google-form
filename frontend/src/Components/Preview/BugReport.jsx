@@ -59,7 +59,7 @@ const handleSubmit = async (e) => {
       responses: formResponses,
     };
 
-    const response = await fetch("http://localhost:5000/api/forms/submit", {
+const response = await fetch(`${import.meta.env.VITE_API_URL}/api/forms/submit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +130,10 @@ const handleSubmit = async (e) => {
                     isDark ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
-                  {field.value || field.placeholder || "Untitled Question"}{" "}
+                  {/* {field.value || field.placeholder || "Untitled Question"}{" "} */}
+                  {field.value || field.placeholder}
+{field.options?.map(option => <li key={option}>{option}</li>)}
+
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
 
